@@ -16,14 +16,15 @@ void trotadita (double *Vr,double *Vc, double chifinal,double *R);
 int main(void)
 { 
  double MB, MD, MH;
- double *R,*Vr,*Vc; 
+ double *R,*Vr,*Vc,*Vfinal; 
  R  = malloc(300 * sizeof(double));
  Vr = malloc(300 * sizeof(double));// velocidad medida
  Vc = malloc(300 * sizeof(double));
+
  double chifinal;
- MB= drand48();
- MD= drand48();
- MH= drand48();
+ MB= fabs((200000*drand48())-100000);
+ MD= fabs((200000*drand48())-100000);
+ MH= fabs((200000*drand48())-100000);
  int i;
  FILE *in;
  float var;
@@ -50,8 +51,25 @@ int main(void)
   //printf("archivos leidos y copiados en arreglos\n");
  mi_model(MB,MD,MH,R,Vc);
  likelihood(Vc,Vr,chifinal);
- trotadita (Vr,Vc,chifinal,R);                                                    
+ trotadita (Vr,Vc,chifinal,R);
+ 
+                                                     
  //printf("FIN FIN FIN\n");
+ FILE *in2;
+ char filename2[100]="new_data.dat";
+ int z;
+ in2 = fopen(filename2, "w");
+ if(!in2)
+ {
+  printf("la habeis cagado abriendo el archivo tio %s\n", filename2);
+  exit(1);
+ }
+ for (z=0;z<300;z++)
+  {
+    fprintf(in2, "%f %f\n",Vr[z],Vc[z]);
+  }
+ fclose(in2);
+ printf ("FIN \n");
 }
 double likelihood(double *Vc,double *Vr,double chifinal)
 { 
@@ -111,9 +129,9 @@ void trotadita (double *Vr,double *Vc, double chifinal,double *R)
  double grande;
  grande = pow(10.0,7.0);
  // generar los primeros pasos
- mb_run[0]= drand48();
- md_run[0]= drand48();
- mh_run[0]= drand48();
+ mb_run[0]= fabs((200000*drand48())-100000);
+ md_run[0]= fabs((200000*drand48())-100000);
+ mh_run[0]= fabs((200000*drand48())-100000);
  //printf("%f %f %f\n",mb_run[0],md_run[0],mh_run[0]);
  mi_model(mb_run[0],md_run[0],mh_run[0], R, Vc);
  Vc_incial = Vc[0];
@@ -122,10 +140,10 @@ void trotadita (double *Vr,double *Vc, double chifinal,double *R)
  
  for (i=0; i<n;i++)
  { 
-  mb_prima = drand48(); 
-  printf("%f \n",mb_prima);
-  md_prima = drand48();
-  mh_prima = drand48();
+  mb_prima = fabs((200000*drand48())-100000); 
+  //printf("%f \n",mb_prima);
+  md_prima = fabs((200000*drand48())-100000);
+  mh_prima = fabs((200000*drand48())-100000);
   mi_model(mb_run[i],md_run[i],mh_run[i], R, Vc);
   Vc_incial = Vc[i];
   l_inicial = likelihood(Vc,Vr,chifinal);
@@ -133,7 +151,6 @@ void trotadita (double *Vr,double *Vc, double chifinal,double *R)
   Vc_prima  = Vc[i]; 
   //printf("%f \n",Vc[i]);
   l_prima   = likelihood(Vc,Vr,chifinal) ;
- 
   alpha =  l_prima/l_inicial;
   if (alpha>=1.0)
   { 
@@ -163,7 +180,21 @@ void trotadita (double *Vr,double *Vc, double chifinal,double *R)
     }
   }
  }
- printf("%f %f %f\n",mb_run[n-1],md_run[n-1],mh_run[n-1]);
+  double max;
+  int c;
+  int lugar = 0;
+  max = l_run[0];
+ 
+  for (c = 1; c < n; c++)
+  {
+    if (l_run[c] > max)
+    {
+       max = l_run[c];
+       lugar = c;
+    }
+  }
+  mi_model(mb_run[lugar],md_run[lugar],mh_run[lugar],R,Vc);
+ printf("%f %f %f\n",mb_run[lugar],md_run[lugar],mh_run[lugar]);
 
 }
 
